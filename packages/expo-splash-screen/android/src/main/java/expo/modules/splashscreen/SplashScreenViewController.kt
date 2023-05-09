@@ -1,5 +1,6 @@
 package expo.modules.splashscreen
 
+import android.animation.Animator
 import android.app.Activity
 import android.os.Handler
 import android.view.View
@@ -63,10 +64,21 @@ open class SplashScreenViewController(
     }
 
     Handler(activity.mainLooper).post {
-      contentView.removeView(splashScreenView)
-      autoHideEnabled = true
-      splashScreenShown = false
-      successCallback(true)
+      val anim = splashScreenView.animate()
+      anim.alpha(0f)
+      anim.duration = 1000
+      anim.setListener(object : Animator.AnimatorListener {
+        override fun onAnimationStart(animation: Animator) {}
+        override fun onAnimationCancel(animation: Animator) {}
+        override fun onAnimationRepeat(animation: Animator) {}
+        override fun onAnimationEnd(animation: Animator) {
+          contentView.removeView(splashScreenView)
+          autoHideEnabled = true
+          splashScreenShown = false
+          successCallback(true)
+        }
+      })
+      anim.start()
     }
   }
 

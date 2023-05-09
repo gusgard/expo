@@ -72,12 +72,16 @@
   EX_WEAKIFY(self);
   dispatch_async(dispatch_get_main_queue(), ^{
     EX_ENSURE_STRONGIFY(self);
-    [self.splashScreenView removeFromSuperview];
-    self.splashScreenShown = NO;
-    self.autoHideEnabled = YES;
-    if (successCallback) {
-      successCallback(YES);
-    }
+    [UIView animateWithDuration:1.0
+         animations:^{self.splashScreenView.alpha = 0.0;}
+         completion:^(BOOL finished){
+      [self.splashScreenView removeFromSuperview];
+      self.splashScreenShown = NO;
+      self.autoHideEnabled = YES;
+      if (successCallback) {
+        successCallback(YES);
+      }
+    }];
   });
 }
 

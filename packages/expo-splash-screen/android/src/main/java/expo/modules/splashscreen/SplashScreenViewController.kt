@@ -63,22 +63,39 @@ open class SplashScreenViewController(
       return failureCallback("Cannot hide native splash screen on activity that is already destroyed (application is already closed).")
     }
 
-    Handler(activity.mainLooper).post {
-      val anim = splashScreenView.animate()
-      anim.alpha(0f)
-      anim.duration = 1000
-      anim.setListener(object : Animator.AnimatorListener {
-        override fun onAnimationStart(animation: Animator) {}
-        override fun onAnimationCancel(animation: Animator) {}
-        override fun onAnimationRepeat(animation: Animator) {}
-        override fun onAnimationEnd(animation: Animator) {
-          contentView.removeView(splashScreenView)
-          autoHideEnabled = true
-          splashScreenShown = false
-          successCallback(true)
-        }
-      })
-      anim.start()
+    var fadeTime = 0L
+    try {
+      fadeTime = activity?.getString(R.string.expo_splash_screen_fade_time)?.toLong() ?: 0L
+      if (fadeTime > MAXIMUM_FADE_TIME || fadeTime < MINIMUM_FADE_TIME) {
+        fadeTime = 0L
+      }
+    } catch (e: java.lang.NumberFormatException) {
+      // If fadeTime string is not a number, use the default
+    }
+
+    if (fadeTime > 0L) {
+      Handler(activity.mainLooper).post {
+        val anim = splashScreenView.animate()
+        anim.alpha(0f)
+        anim.duration = fadeTime
+        anim.setListener(object : Animator.AnimatorListener {
+          override fun onAnimationStart(animation: Animator) {}
+          override fun onAnimationCancel(animation: Animator) {}
+          override fun onAnimationRepeat(animation: Animator) {}
+          override fun onAnimationEnd(animation: Animator) {
+            contentView.removeView(splashScreenView)
+            autoHideEnabled = true
+            splashScreenShown = false
+            successCallback(true)
+          }
+        })
+        anim.start()
+      }
+    } else {
+      contentView.removeView(splashScreenView)
+      autoHideEnabled = true
+      splashScreenShown = false
+      successCallback(true)
     }
   }
 
@@ -133,5 +150,10 @@ open class SplashScreenViewController(
         }
       }
     })
+  }
+
+  companion object {
+    val MINIMUM_FADE_TIME = 0L
+    val MAXIMUM_FADE_TIME = 5000L
   }
 }
